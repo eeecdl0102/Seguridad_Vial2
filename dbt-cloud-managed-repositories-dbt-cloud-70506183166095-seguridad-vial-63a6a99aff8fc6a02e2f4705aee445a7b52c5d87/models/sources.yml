@@ -1,0 +1,27 @@
+version: 2
+
+sources:
+  - name: la_paz_vial
+    database: SEGURIDAD_VIAL_DB
+    schema: BRONCE
+    tables:
+      - name: ACCIDENTES
+        description: "Accidentes de transito crudos desde el generador Python"
+      - name: ACCIDENTE_VICTIMAS
+        description: "Victimas de accidentes crudas"
+      - name: ACCIDENTE_VEHICULOS
+        description: "Vehiculos involucrados en accidentes crudos"
+      - name: INFRACCIONES
+        description: "Infracciones de transito crudas"
+      - name: PROCESOS_JUDICIALES
+        description: "Procesos judiciales crudos"
+      - name: SEGUROS
+        description: "Reclamos de seguros crudos"
+      - name: DEPOSITOS_VEHICULOS
+        description: "Depositos de vehiculos crudos"
+      - name: LLAMADAS_EMERGENCIA
+        description: "Llamadas de emergencia crudas"
+      - name: PERSONAS
+        description: "Maestro de personas crudo"
+      - name: VEHICULOS
+        description: "Maestro de vehiculos crudo"

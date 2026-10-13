@@ -1,0 +1,162 @@
+version: 2
+
+models:
+  - name: dim_fecha
+    description: "Dimension conformada maestra: Tiempo (dia). Compartida por los 7 procesos de negocio."
+    columns:
+      - name: fecha_key
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_hora
+    description: "Dimension conformada parcial: Tiempo (hora). Compartida por 4 procesos."
+    columns:
+      - name: hora_key
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_ubicacion
+    description: "Dimension conformada maestra: Ubicacion. Compartida por 6/7 procesos."
+    columns:
+      - name: ubicacion_key
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_persona
+    description: "Dimension compartida: Perfil de persona con contexto de victima. Fuentes: plata_personas + plata_victimas. NOTA: Todo en PLATA esta en MAYUSCULAS."
+    columns:
+      - name: persona_key
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_vehiculo
+    description: "Dimension compartida: Perfil de vehiculo con direccion de desplazamiento. Fuentes: plata_vehiculos_maestro + plata_vehiculos_accidente."
+    columns:
+      - name: vehiculo_key
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_factor_contribuyente
+    description: "Dimension compartida: Factor contribuyente. Compartida por accidente y vehiculo."
+    columns:
+      - name: factor_contribuyente_key
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_severidad
+    description: "Junk dimension: Severidad del accidente. Usada por HECHO_ACCIDENTE."
+    columns:
+      - name: severidad_key
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_unidad_policial
+    description: "Dimension compartida: Unidad policial. Compartida por accidente e infraccion."
+    columns:
+      - name: unidad_policial_key
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_tipo_infraccion
+    description: "Dimension especifica: Tipo de infraccion."
+    columns:
+      - name: tipo_infraccion_key
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_aseguradora
+    description: "Dimension especifica: Aseguradora."
+    columns:
+      - name: aseguradora_key
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_estado_proceso
+    description: "Dimension especifica: Estado del proceso judicial."
+    columns:
+      - name: estado_proceso_key
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_tipo_deposito
+    description: "Dimension especifica: Tipo de deposito."
+    columns:
+      - name: tipo_deposito_key
+        tests:
+          - not_null
+          - unique
+
+  - name: hecho_accidente
+    description: "Hecho padre: Registro de siniestros. Grano: 1 accidente = 1 fila."
+    columns:
+      - name: accidente_key
+        tests:
+          - not_null
+          - unique
+      - name: codigo_informe_policial
+        tests:
+          - not_null
+          - unique
+
+  - name: hecho_victima
+    description: "Hecho hijo: Participacion de personas. Grano: 1 persona en 1 accidente = 1 fila."
+    columns:
+      - name: victima_key
+        tests:
+          - not_null
+          - unique
+
+  - name: hecho_vehiculo_accidente
+    description: "Hecho hijo: Participacion de vehiculos. Grano: 1 vehiculo en 1 accidente = 1 fila."
+    columns:
+      - name: vehiculo_accidente_key
+        tests:
+          - not_null
+          - unique
+
+  - name: hecho_infraccion
+    description: "Hecho: Infracciones de transito. Grano: 1 boleta = 1 fila."
+    columns:
+      - name: infraccion_key
+        tests:
+          - not_null
+          - unique
+      - name: codigo_boleta
+        tests:
+          - not_null
+          - unique
+
+  - name: hecho_proceso_judicial
+    description: "Hecho accumulating snapshot: Procesos judiciales. Grano: 1 causa = 1 fila."
+    columns:
+      - name: proceso_key
+        tests:
+          - not_null
+          - unique
+
+  - name: hecho_seguro
+    description: "Hecho: Reclamos de seguro. Grano: 1 reclamo = 1 fila."
+    columns:
+      - name: seguro_key
+        tests:
+          - not_null
+          - unique
+
+  - name: hecho_deposito_vehiculo
+    description: "Hecho: Ingreso de vehiculo a deposito municipal. Grano: 1 ingreso = 1 fila."
+    columns:
+      - name: deposito_key
+        tests:
+          - not_null
+          - unique
