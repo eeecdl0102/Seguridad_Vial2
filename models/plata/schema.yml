@@ -1,0 +1,357 @@
+version: 2
+
+models:
+  # ---------------------------------------------------------------------------
+  # PLATA_ACCIDENTES
+  # ---------------------------------------------------------------------------
+  - name: plata_accidentes
+    description: "Accidentes de tránsito limpios y normalizados (PATRONES P13, P24, P51). Granularidad: 1 fila = 1 accidente."
+    columns:
+      - name: id_reporte_accidente
+        description: "Identificador único del accidente"
+        tests:
+          - not_null
+          - unique
+
+      - name: fecha_hora
+        description: "Fecha y hora del accidente"
+        tests:
+          - not_null
+
+      - name: anio
+        description: "Año del accidente"
+        tests:
+          - not_null
+
+      - name: mes
+        description: "Mes del accidente (1-12)"
+        tests:
+          - not_null
+
+      - name: macrodistrito
+        description: "Macrodistrito donde ocurrió el accidente"
+        tests:
+          - not_null
+
+      - name: gravedad_accidente
+        description: "Gravedad normalizada del accidente"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["LEVE", "MODERADO", "GRAVE", "MORTAL"]
+
+      - name: causa_accidente
+        description: "Causa atribuida del accidente"
+        tests:
+          - not_null
+
+      - name: latitud
+        description: "Latitud geográfica validada"
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: -90
+                max_value: 90
+
+      - name: longitud
+        description: "Longitud geográfica validada"
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: -180
+                max_value: 180
+
+      - name: cantidad_vehiculos
+        description: "Cantidad de vehículos involucrados"
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 50
+
+      - name: cantidad_personas
+        description: "Cantidad de personas involucradas"
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+
+  # ---------------------------------------------------------------------------
+  # PLATA_VICTIMAS
+  # ---------------------------------------------------------------------------
+  - name: plata_victimas
+    description: "Víctimas de accidentes limpias y normalizadas (PATRONES P11, P43). Granularidad: 1 fila = 1 víctima."
+    columns:
+      - name: id_reporte_accidente
+        description: "FK al accidente"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('plata_accidentes')
+                field: id_reporte_accidente
+
+      - name: numero_documento_victima
+        description: "Documento de identidad de la víctima"
+        tests:
+          - not_null
+
+      - name: tipo_usuario
+        description: "Rol de la víctima en el accidente"
+        tests:
+          - not_null
+
+      - name: gravedad_lesion
+        description: "Gravedad de la lesión (PATRON P43)"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["LEVE", "MODERADA", "GRAVE", "MORTAL"]
+
+      - name: uso_casco
+        description: "Uso de casco (solo aplica a motociclistas/ciclistas)"
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["SI", "NO", "N/A"]
+
+      - name: uso_cinturon
+        description: "Uso de cinturón (solo aplica a ocupantes)"
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["SI", "NO", "N/A"]
+
+  # ---------------------------------------------------------------------------
+  # PLATA_VEHICULOS_ACCIDENTE
+  # ---------------------------------------------------------------------------
+  - name: plata_vehiculos_accidente
+    description: "Vehículos involucrados en accidentes (PATRON P41). Granularidad: 1 fila = 1 vehículo por accidente."
+    columns:
+      - name: id_reporte_accidente
+        description: "FK al accidente"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('plata_accidentes')
+                field: id_reporte_accidente
+
+      - name: placa
+        description: "Placa del vehículo"
+        tests:
+          - not_null
+
+  # ---------------------------------------------------------------------------
+  # PLATA_INFRACCIONES
+  # ---------------------------------------------------------------------------
+  - name: plata_infracciones
+    description: "Infracciones de tránsito limpias (PATRONES P12, P22, P29, P31). Granularidad: 1 fila = 1 acta."
+    columns:
+      - name: numero_acta
+        description: "Número único del acta de infracción"
+        tests:
+          - not_null
+          - unique
+
+      - name: fecha_hora
+        description: "Fecha y hora de la infracción"
+        tests:
+          - not_null
+
+      - name: gravedad_infraccion
+        description: "Gravedad de la infracción"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["LEVE", "GRAVE"]
+
+      - name: monto_multa
+        description: "Monto de la multa (debe ser positivo)"
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      - name: estado_multa
+        description: "Estado actual de la multa"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  ["PAGADA", "PENDIENTE", "APELADA", "ANULADA", "EN COBRANZA"]
+
+      - name: oficial_id
+        description: "ID del oficial que levantó el acta (PATRON P22)"
+        tests:
+          - not_null
+
+      - name: esta_pagada
+        description: "Flag booleano de pago (PATRON P12)"
+        tests:
+          - not_null
+
+  # ---------------------------------------------------------------------------
+  # PLATA_JUDICIALES
+  # ---------------------------------------------------------------------------
+  - name: plata_judiciales
+    description: "Procesos judiciales limpios. Granularidad: 1 fila = 1 causa."
+    columns:
+      - name: numero_causa
+        description: "Número único de la causa"
+        tests:
+          - not_null
+          - unique
+
+      - name: estado_proceso
+        description: "Estado del proceso judicial"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  ["EN CURSO", "SUSPENDIDO", "RESUELTO", "ARCHIVADO", "APELACION"]
+
+  # ---------------------------------------------------------------------------
+  # PLATA_SEGUROS
+  # ---------------------------------------------------------------------------
+  - name: plata_seguros
+    description: "Reclamos de seguros limpios. Granularidad: 1 fila = 1 reclamo."
+    columns:
+      - name: numero_reclamo
+        description: "Número único del reclamo"
+        tests:
+          - not_null
+          - unique
+
+      - name: estado_reclamo
+        description: "Estado del reclamo"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  ["APROBADO", "RECHAZADO", "EN EVALUACION", "PAGADO", "ANULADO"]
+
+      - name: monto_reclamado
+        description: "Monto reclamado (debe ser positivo)"
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+  # ---------------------------------------------------------------------------
+  # PLATA_DEPOSITOS
+  # ---------------------------------------------------------------------------
+  - name: plata_depositos
+    description: "Depósitos de vehículos limpios (PATRON P32). Granularidad: 1 fila = 1 registro."
+    columns:
+      - name: numero_registro
+        description: "Número único del registro de depósito"
+        tests:
+          - not_null
+          - unique
+
+      - name: fecha_ingreso
+        description: "Fecha de ingreso al depósito"
+        tests:
+          - not_null
+
+      - name: dias_estadia_calculados
+        description: "Días de estadía calculados (PATRON P32)"
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 365
+
+  # ---------------------------------------------------------------------------
+  # PLATA_LLAMADAS
+  # ---------------------------------------------------------------------------
+  - name: plata_llamadas
+    description: "Llamadas de emergencia limpias (PATRONES P40, P51+P60). Granularidad: 1 fila = 1 llamada."
+    columns:
+      - name: id_llamada
+        description: "Identificador único de la llamada"
+        tests:
+          - not_null
+          - unique
+
+      - name: fecha_hora_llamada
+        description: "Fecha y hora de la llamada"
+        tests:
+          - not_null
+
+      - name: urgencia_referencia
+        description: "Nivel de urgencia clasificado"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["URGENTE", "NO URGENTE", "NO ESPECIFICADO"]
+
+      - name: duracion_segundos
+        description: "Duración de la llamada en segundos"
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 3600
+
+  # ---------------------------------------------------------------------------
+  # PLATA_PERSONAS
+  # ---------------------------------------------------------------------------
+  - name: plata_personas
+    description: "Maestro de personas limpio (PATRON P11). Granularidad: 1 fila = 1 persona."
+    columns:
+      - name: numero_documento
+        description: "Documento de identidad único"
+        tests:
+          - not_null
+          - unique
+
+      - name: perfil_riesgo
+        description: "Perfil de riesgo del conductor (PATRON P11)"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["alto", "moderado", "bajo"]
+
+      - name: edad_declarada
+        description: "Edad declarada validada"
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 120
+
+  # ---------------------------------------------------------------------------
+  # PLATA_VEHICULOS_MAESTRO
+  # ---------------------------------------------------------------------------
+  - name: plata_vehiculos_maestro
+    description: "Maestro de vehículos limpio. Granularidad: 1 fila = 1 vehículo."
+    columns:
+      - name: placa
+        description: "Placa única del vehículo"
+        tests:
+          - not_null
+          - unique
+
+      - name: anio_fabricacion
+        description: "Año de fabricación validado"
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1900
+                max_value: 2026
+
+      - name: tipo_vehiculo
+        description: "Tipo de vehículo"
+        tests:
+          - not_null
