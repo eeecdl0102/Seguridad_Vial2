@@ -321,7 +321,7 @@ models:
           - not_null
           - accepted_values:
               arguments:
-                values: ["alto", "moderado", "bajo"]
+                values: ["alto", "moderado", "bajo", "ALTO", "MODERADO", "BAJO", "Alto", "Moderado", "Bajo"]
 
       - name: edad_declarada
         description: "Edad declarada validada"
